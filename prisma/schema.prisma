@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      String   // "TEACHER" | "STUDENT"
+  createdAt DateTime @default(now())
+
+  // Teacher Relations
+  classroomsOwned Classroom[] @relation("TeacherClasses")
+
+  // Student Relations
+  classroomsEnrolled Classroom[] @relation("StudentClasses")
+  submissions        Submission[]
+}
+
+model Classroom {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  code        String   @unique // Join code
+  teacherId   String
+  teacher     User     @relation("TeacherClasses", fields: [teacherId], references: [id])
+  
+  students    User[]   @relation("StudentClasses")
+  exercises   Exercise[]
+  
+  createdAt   DateTime @default(now())
+}
+
+model Exercise {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  formula     String
+  difficulty  String   // "EASY" | "MEDIUM" | "HARD"
+  
+  classroomId String
+  classroom   Classroom @relation(fields: [classroomId], references: [id])
+  
+  submissions Submission[]
+  
+  createdAt   DateTime @default(now())
+}
+
+model Submission {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     User     @relation(fields: [studentId], references: [id])
+  
+  exerciseId  String
+  exercise    Exercise @relation(fields: [exerciseId], references: [id])
+  
+  status      String   // "CORRECT" | "INCORRECT"
+  
+  createdAt   DateTime @default(now())
+}

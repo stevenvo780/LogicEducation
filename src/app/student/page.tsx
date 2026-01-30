@@ -6,11 +6,11 @@ export default function StudentPage() {
     <div className="min-h-screen p-8 pb-20 sm:p-20">
       <header className="mb-12 flex justify-between items-center max-w-6xl mx-auto">
         <div>
-          <h1 className="text-4xl font-bold mb-2">Student <span className="text-accent">Hub</span></h1>
-          <p className="text-gray-400">Master logic through practice.</p>
+          <h1 className="text-4xl font-bold mb-2">Centro <span className="text-accent">Estudiantil</span></h1>
+          <p className="text-gray-400">Domina la lógica a través de la práctica.</p>
         </div>
         <Link href="/" className="text-sm text-gray-500 hover:text-white transition-colors">
-          ← Back to Home
+          ← Volver al Inicio
         </Link>
       </header>
 
@@ -18,7 +18,7 @@ export default function StudentPage() {
         <section className="mb-16">
           <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
             <span className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent text-sm">P</span>
-            Practice Arena
+            Arena de Práctica
           </h2>
           <Playground />
         </section>

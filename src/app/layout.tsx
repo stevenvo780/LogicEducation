@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "LogicEducation | Master Propositional Logic",
-  description: "A premium logic learning platform for students and teachers.",
+  title: "Lógica UdeA | Plataforma Educativa",
+  description: "Una plataforma premium de aprendizaje de lógica para la Universidad de Antioquia.",
 };
 
 export default function RootLayout({

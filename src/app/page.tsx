@@ -27,16 +27,16 @@ export default function Home() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-sm text-[var(--accent)] mb-4">
             <BrainCircuit className="w-4 h-4" />
-            <span>Next Gen Logic Platform</span>
+            <span>Plataforma de Lógica UdeA</span>
           </div>
 
           <h1 className="text-7xl font-extrabold tracking-tight leading-tight">
-            Master the Art of <br />
-            <span className="text-gradient drop-shadow-2xl">Reasoning</span>
+            Domina el Arte del <br />
+            <span className="text-gradient drop-shadow-2xl">Razonamiento</span>
           </h1>
 
           <p className="text-xl text-[var(--text-muted)] max-w-2xl mx-auto leading-relaxed">
-            Experience logic like never before. An immersive, interactive, and visually stunning environment designed for modern learners.
+            Experimenta la lógica proposicional como nunca antes. Un entorno inmersivo, interactivo y visualmente impactante diseñado para la Universidad de Antioquia.
           </p>
         </motion.div>
 
@@ -57,11 +57,11 @@ export default function Home() {
                 <BookOpen className="w-7 h-7" />
               </div>
 
-              <h3 className="text-2xl font-bold mb-2 group-hover:text-[var(--primary)] transition-colors">Teacher Studio</h3>
-              <p className="text-[var(--text-muted)] mb-6">Create complex exercises, visualize truth tables, and manage your classroom with powerful tools.</p>
+              <h3 className="text-2xl font-bold mb-2 group-hover:text-[var(--primary)] transition-colors">Estudio Docente</h3>
+              <p className="text-[var(--text-muted)] mb-6">Crea ejercicios complejos, visualiza tablas de verdad y gestiona tu aula con herramientas potentes.</p>
 
               <div className="flex items-center gap-2 text-sm font-bold text-[var(--primary)]">
-                Enter Studio <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                Ingresar al Estudio <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </motion.div>
           </Link>
@@ -80,11 +80,11 @@ export default function Home() {
                 <GraduationCap className="w-7 h-7" />
               </div>
 
-              <h3 className="text-2xl font-bold mb-2 group-hover:text-[var(--secondary)] transition-colors">Student Hub</h3>
-              <p className="text-[var(--text-muted)] mb-6">Solve interactive puzzles, track your progress, and master propositional calculus step-by-step.</p>
+              <h3 className="text-2xl font-bold mb-2 group-hover:text-[var(--secondary)] transition-colors">Centro Estudiantil</h3>
+              <p className="text-[var(--text-muted)] mb-6">Resuelve acertijos interactivos, sigue tu progreso y domina el cálculo proposicional paso a paso.</p>
 
               <div className="flex items-center gap-2 text-sm font-bold text-[var(--secondary)]">
-                Start Learning <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                Comenzar a Aprender <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </motion.div>
           </Link>

@@ -2,15 +2,15 @@
 
 import React, { useState, useRef } from 'react';
 import { TruthTable } from '@/components/logic/TruthTable';
-import { Sparkles, Keyboard, Delete } from 'lucide-react';
+import { Sparkles, Keyboard } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const SYMEBOLS = [
-  { char: '¬', label: 'NOT', key: '~' },
-  { char: '∧', label: 'AND', key: '&' },
-  { char: '∨', label: 'OR', key: '|' },
-  { char: '→', label: 'IMPLIES', key: '->' },
-  { char: '↔', label: 'IFF', key: '<->' },
+  { char: '¬', label: 'NO', key: '~' },
+  { char: '∧', label: 'Y', key: '&' },
+  { char: '∨', label: 'O', key: '|' },
+  { char: '→', label: 'IMPLICA', key: '->' },
+  { char: '↔', label: 'SI_SOLO_SI', key: '<->' },
 ];
 
 export const Playground = () => {
@@ -47,11 +47,11 @@ export const Playground = () => {
           <div className="flex justify-between items-center mb-2">
             <label className="flex items-center gap-2 text-sm font-semibold text-[var(--accent)] uppercase tracking-wider">
               <Sparkles className="w-4 h-4" />
-              Logic Editor
+              Editor Lógico
             </label>
             <span className="text-xs text-slate-500 flex items-center gap-1">
               <Keyboard className="w-3 h-3" />
-              Press keys or use toolbar
+              Presiona teclas o usa la barra
             </span>
           </div>
 
@@ -77,13 +77,13 @@ export const Playground = () => {
               value={formula}
               onChange={(e) => setFormula(e.target.value)}
               className="w-full bg-black/40 border border-white/10 rounded-xl px-6 py-6 text-2xl font-mono text-white placeholder-gray-700 outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] focus:shadow-[0_0_20px_rgba(99,102,241,0.2)] transition-all"
-              placeholder="Enter formula..."
+              placeholder="Ingresa la fórmula..."
               spellCheck={false}
             />
           </div>
 
           <p className="text-xs text-gray-600 font-mono">
-            Example: (A ∨ B) ∧ ¬C
+            Ejemplo: (A ∨ B) ∧ ¬C
           </p>
         </div>
       </motion.div>

@@ -50,7 +50,7 @@ export const TruthTable: React.FC<TruthTableProps> = ({ formulaStr }) => {
           </div>
         ))}
         <div className="p-4 text-center font-bold text-[var(--primary)] font-mono uppercase tracking-wider text-sm bg-indigo-500/10">
-          Result
+          Resultado
         </div>
       </div>
 
@@ -73,7 +73,7 @@ export const TruthTable: React.FC<TruthTableProps> = ({ formulaStr }) => {
                     ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 group-hover:scale-110"
                     : "bg-rose-500/20 text-rose-400 border border-rose-500/30 opacity-50"
                 )}>
-                  {row.assignment[v] ? 'T' : 'F'}
+                  {row.assignment[v] ? 'V' : 'F'}
                 </span>
               </div>
             ))}
@@ -86,7 +86,7 @@ export const TruthTable: React.FC<TruthTableProps> = ({ formulaStr }) => {
                   : "bg-gray-800/50 text-gray-500 border-gray-700"
               )}>
                 {row.result ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-                {row.result ? 'TRUE' : 'FALSE'}
+                {row.result ? 'VERDADERO' : 'FALSO'}
               </span>
             </div>
           </motion.div>
