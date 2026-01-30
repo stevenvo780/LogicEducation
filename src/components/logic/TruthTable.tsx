@@ -12,17 +12,57 @@ interface TruthTableProps {
 }
 
 export const TruthTable: React.FC<TruthTableProps> = ({ formulaStr }) => {
-  const { table, error } = useMemo(() => {
+  const { table, error, isIncomplete } = useMemo(() => {
     try {
-      if (!formulaStr.trim()) return { table: null, error: null };
+      if (!formulaStr.trim()) return { table: null, error: null, isIncomplete: false };
+
+      // Check for common incomplete patterns
+      const trimmed = formulaStr.trim();
+      const incompletePatterns = [
+        /^[~¬]$/,                    // Just negation
+        /[\&\|\^]$/,                 // Ends with operator
+        /->$/,                       // Ends with arrow
+        /<->$/,                      // Ends with biconditional
+        /\($/,                       // Unclosed parenthesis
+        /^->/,                       // Starts with arrow
+        /^<->/,                      // Starts with biconditional
+      ];
+
+      if (incompletePatterns.some(p => p.test(trimmed))) {
+        return { table: null, error: null, isIncomplete: true };
+      }
+
       const parser = new LogicParser();
       const formula = parser.parse(formulaStr);
       const table = generateTruthTable(formula);
-      return { table, error: null };
+      return { table, error: null, isIncomplete: false };
     } catch (e: unknown) {
-      return { table: null, error: (e as Error).message };
+      const msg = (e as Error).message;
+      // Make error messages more friendly
+      let friendlyError = msg;
+      if (msg.includes('atom expectation')) {
+        friendlyError = 'Falta una variable o expresión. Verifica la sintaxis.';
+      } else if (msg.includes('Unexpected token')) {
+        friendlyError = 'Símbolo inesperado. Revisa la fórmula.';
+      } else if (msg.includes('Unclosed')) {
+        friendlyError = 'Paréntesis sin cerrar.';
+      }
+      return { table: null, error: friendlyError, isIncomplete: false };
     }
   }, [formulaStr]);
+
+  if (isIncomplete) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-amber-400"
+      >
+        <AlertCircle className="w-5 h-5" />
+        <span className="text-sm">Completa la fórmula para ver la tabla...</span>
+      </motion.div>
+    );
+  }
 
   if (error) {
     return (

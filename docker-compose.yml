@@ -9,3 +9,11 @@ services:
       - "8088:3000"
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=file:./prisma/dev.db
+      - NEXTAUTH_SECRET=I4a/NsZEMJ17qVaxIo1je8jhEesgXWy6+RA7Lcll2KE=
+      - NEXTAUTH_URL=http://localhost:8088
+      - HOME=/tmp
+      - npm_config_cache=/tmp
+    volumes:
+      - ./prisma/dev.db:/app/prisma/dev.db
+    command: sh -c "npx prisma@5.10.2 migrate deploy && node server.js"

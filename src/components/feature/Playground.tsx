@@ -2,8 +2,10 @@
 
 import React, { useState, useRef } from 'react';
 import { TruthTable } from '@/components/logic/TruthTable';
-import { Sparkles, Keyboard } from 'lucide-react';
+import { AnalysisPanel } from '@/components/logic/AnalysisPanel';
+import { Sparkles, Keyboard, Table, Brain } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 const SYMEBOLS = [
   { char: '¬', label: 'NO', key: '~' },
@@ -13,8 +15,11 @@ const SYMEBOLS = [
   { char: '↔', label: 'SI_SOLO_SI', key: '<->' },
 ];
 
+type ViewMode = 'table' | 'analysis';
+
 export const Playground = () => {
   const [formula, setFormula] = useState<string>('P -> (Q & R)');
+  const [viewMode, setViewMode] = useState<ViewMode>('table');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const insertSymbol = (sym: string) => {
@@ -83,13 +88,45 @@ export const Playground = () => {
           </div>
 
           <p className="text-xs text-gray-600 font-mono">
-            Ejemplo: (A ∨ B) ∧ ¬C
+            Ejemplo: (A ∨ B) ∧ ¬C → D
           </p>
         </div>
       </motion.div>
 
+      {/* View Mode Tabs */}
+      <div className="flex gap-2 justify-center">
+        <button
+          onClick={() => setViewMode('table')}
+          className={cn(
+            "flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all",
+            viewMode === 'table'
+              ? "bg-[var(--primary)] text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+              : "bg-white/5 text-gray-400 hover:bg-white/10"
+          )}
+        >
+          <Table className="w-4 h-4" />
+          Tabla de Verdad
+        </button>
+        <button
+          onClick={() => setViewMode('analysis')}
+          className={cn(
+            "flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all",
+            viewMode === 'analysis'
+              ? "bg-[var(--accent)] text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+              : "bg-white/5 text-gray-400 hover:bg-white/10"
+          )}
+        >
+          <Brain className="w-4 h-4" />
+          Análisis Avanzado
+        </button>
+      </div>
+
       {/* Results Section */}
-      <TruthTable formulaStr={formula} />
+      {viewMode === 'table' ? (
+        <TruthTable formulaStr={formula} />
+      ) : (
+        <AnalysisPanel formulaStr={formula} />
+      )}
     </div>
   );
 };
