@@ -1,0 +1,11 @@
+services:
+  logic-app:
+    container_name: logic-education-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8088:3000"
+    environment:
+      - NODE_ENV=production
