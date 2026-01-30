@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Solo profesores pueden crear ejercicios' }, { status: 403 });
     }
 
-    const { title, description, formula, difficulty, classroomId } = await request.json();
+    const { title, description, explanation, formula, difficulty, classroomId } = await request.json();
 
     if (!title || !formula || !classroomId) {
       return NextResponse.json({ error: 'Título, fórmula y classroomId son requeridos' }, { status: 400 });
@@ -101,8 +101,10 @@ export async function POST(request: NextRequest) {
       data: {
         title: title.trim(),
         description: description?.trim() || null,
+        explanation: explanation?.trim() || null,
         formula: formula.trim(),
         difficulty: difficulty || 'MEDIUM',
+        type: 'EQUIVALENCE', // Default for now, can be expanded later
         classroomId
       }
     });

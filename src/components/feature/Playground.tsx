@@ -3,7 +3,9 @@
 import React, { useState, useRef } from 'react';
 import { TruthTable } from '@/components/logic/TruthTable';
 import { AnalysisPanel } from '@/components/logic/AnalysisPanel';
-import { Sparkles, Keyboard, Table, Brain } from 'lucide-react';
+import { LogicComparison } from '@/components/logic/LogicComparison';
+import { SyntaxTree } from '@/components/logic/SyntaxTree';
+import { Sparkles, Keyboard, Table, Brain, Split, Network } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -15,7 +17,7 @@ const SYMEBOLS = [
   { char: '↔', label: 'SI_SOLO_SI', key: '<->' },
 ];
 
-type ViewMode = 'table' | 'analysis';
+type ViewMode = 'table' | 'analysis' | 'comparison' | 'tree';
 
 export const Playground = () => {
   const [formula, setFormula] = useState<string>('P -> (Q & R)');
@@ -42,65 +44,67 @@ export const Playground = () => {
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8">
-      {/* Editor Section */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="glass rounded-2xl p-1 overflow-hidden"
-      >
-        <div className="bg-[#0f111a] rounded-xl p-6 sm:p-8 space-y-6">
-          <div className="flex justify-between items-center mb-2">
-            <label className="flex items-center gap-2 text-sm font-semibold text-[var(--accent)] uppercase tracking-wider">
-              <Sparkles className="w-4 h-4" />
-              Editor Lógico
-            </label>
-            <span className="text-xs text-slate-500 flex items-center gap-1">
-              <Keyboard className="w-3 h-3" />
-              Presiona teclas o usa la barra
-            </span>
-          </div>
+      {/* Editor Section - Hide in Comparison Mode */}
+      {viewMode !== 'comparison' && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="glass rounded-2xl p-1 overflow-hidden"
+        >
+          <div className="bg-[#0f111a] rounded-xl p-6 sm:p-8 space-y-6">
+            <div className="flex justify-between items-center mb-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-[var(--accent)] uppercase tracking-wider">
+                <Sparkles className="w-4 h-4" />
+                Editor Lógico
+              </label>
+              <span className="text-xs text-slate-500 flex items-center gap-1">
+                <Keyboard className="w-3 h-3" />
+                Presiona teclas o usa la barra
+              </span>
+            </div>
 
-          {/* Toolbar */}
-          <div className="flex gap-2 flex-wrap pb-4 border-b border-white/5">
-            {SYMEBOLS.map((s) => (
-              <button
-                key={s.label}
-                onClick={() => insertSymbol(s.key)}
-                className="btn-premium text-sm group hover:border-[var(--secondary)]"
-              >
-                <span className="text-[var(--secondary)] font-bold text-lg">{s.char}</span>
-                <span className="text-xs text-gray-400 font-normal">{s.label}</span>
-              </button>
-            ))}
-          </div>
+            {/* Toolbar */}
+            <div className="flex gap-2 flex-wrap pb-4 border-b border-white/5">
+              {SYMEBOLS.map((s) => (
+                <button
+                  key={s.label}
+                  onClick={() => insertSymbol(s.key)}
+                  className="btn-premium text-sm group hover:border-[var(--secondary)]"
+                >
+                  <span className="text-[var(--secondary)] font-bold text-lg">{s.char}</span>
+                  <span className="text-xs text-gray-400 font-normal">{s.label}</span>
+                </button>
+              ))}
+            </div>
 
-          {/* Input Area */}
-          <div className="relative group">
-            <input
-              ref={inputRef}
-              type="text"
-              value={formula}
-              onChange={(e) => setFormula(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-6 py-6 text-2xl font-mono text-white placeholder-gray-700 outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] focus:shadow-[0_0_20px_rgba(99,102,241,0.2)] transition-all"
-              placeholder="Ingresa la fórmula..."
-              spellCheck={false}
-            />
-          </div>
+            {/* Input Area */}
+            <div className="relative group">
+              <input
+                ref={inputRef}
+                type="text"
+                value={formula}
+                onChange={(e) => setFormula(e.target.value)}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-6 py-6 text-2xl font-mono text-white placeholder-gray-700 outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] focus:shadow-[0_0_20px_rgba(99,102,241,0.2)] transition-all"
+                placeholder="Ingresa la fórmula..."
+                spellCheck={false}
+              />
+            </div>
 
-          <p className="text-xs text-gray-600 font-mono">
-            Ejemplo: (A ∨ B) ∧ ¬C → D
-          </p>
-        </div>
-      </motion.div>
+            <p className="text-xs text-gray-600 font-mono">
+              Ejemplo: (A ∨ B) ∧ ¬C → D
+            </p>
+          </div>
+        </motion.div>
+      )}
 
       {/* View Mode Tabs */}
-      <div className="flex gap-2 justify-center">
+      <div className="flex gap-2 justify-center flex-wrap">
         <button
           onClick={() => setViewMode('table')}
           className={cn(
-            "flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all",
+            "flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all shadow-lg",
             viewMode === 'table'
-              ? "bg-[var(--primary)] text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+              ? "bg-[var(--primary)] text-white shadow-[var(--primary)]/20"
               : "bg-white/5 text-gray-400 hover:bg-white/10"
           )}
         >
@@ -110,23 +114,53 @@ export const Playground = () => {
         <button
           onClick={() => setViewMode('analysis')}
           className={cn(
-            "flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all",
+            "flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all shadow-lg",
             viewMode === 'analysis'
-              ? "bg-[var(--accent)] text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+              ? "bg-[var(--secondary)] text-white shadow-[var(--secondary)]/20"
               : "bg-white/5 text-gray-400 hover:bg-white/10"
           )}
         >
           <Brain className="w-4 h-4" />
-          Análisis Avanzado
+          Análisis
+        </button>
+        <button
+          onClick={() => setViewMode('tree')}
+          className={cn(
+            "flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all shadow-lg",
+            viewMode === 'tree'
+              ? "bg-emerald-500 text-white shadow-emerald-500/20"
+              : "bg-white/5 text-gray-400 hover:bg-white/10"
+          )}
+        >
+          <Network className="w-4 h-4" />
+          Árbol Sintáctico
+        </button>
+        <button
+          onClick={() => setViewMode('comparison')}
+          className={cn(
+            "flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all shadow-lg",
+            viewMode === 'comparison'
+              ? "bg-amber-500 text-white shadow-amber-500/20"
+              : "bg-white/5 text-gray-400 hover:bg-white/10"
+          )}
+        >
+          <Split className="w-4 h-4" />
+          Comparación
         </button>
       </div>
 
       {/* Results Section */}
-      {viewMode === 'table' ? (
-        <TruthTable formulaStr={formula} />
-      ) : (
-        <AnalysisPanel formulaStr={formula} />
-      )}
+      <motion.div
+        key={viewMode}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        {viewMode === 'table' && <TruthTable formulaStr={formula} />}
+        {viewMode === 'analysis' && <AnalysisPanel formulaStr={formula} />}
+        {viewMode === 'tree' && <SyntaxTree formulaStr={formula} />}
+        {viewMode === 'comparison' && <LogicComparison />}
+      </motion.div>
     </div>
   );
 };

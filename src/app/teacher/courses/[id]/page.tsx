@@ -307,6 +307,7 @@ function CreateExerciseModal({
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [explanation, setExplanation] = useState(""); // Feedback/Explanation
   const [formula, setFormula] = useState("");
   const [difficulty, setDifficulty] = useState("MEDIUM");
   const [loading, setLoading] = useState(false);
@@ -322,7 +323,7 @@ function CreateExerciseModal({
       const res = await fetch("/api/exercises", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, formula, difficulty, classroomId }),
+        body: JSON.stringify({ title, description, explanation, formula, difficulty, classroomId }),
       });
 
       if (res.ok) {
@@ -383,6 +384,18 @@ function CreateExerciseModal({
               onChange={(e) => setDescription(e.target.value)}
               className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none focus:border-[var(--primary)] transition-all resize-none h-20"
               placeholder="Instrucciones para el estudiante..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-2">
+              Explicación / Feedback (Opcional)
+            </label>
+            <textarea
+              value={explanation}
+              onChange={(e) => setExplanation(e.target.value)}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none focus:border-[var(--primary)] transition-all resize-none h-20"
+              placeholder="Explicación que verá el estudiante al completar el ejercicio o pedir ayuda..."
             />
           </div>
 

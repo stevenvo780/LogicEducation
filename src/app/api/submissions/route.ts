@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
-import { LogicParser } from '@/lib/logic/parser';
-import { generateTruthTable } from '@/lib/logic/evaluator';
 
 // GET /api/submissions?exerciseId=xxx - Get submissions for an exercise
 export async function GET(request: NextRequest) {
@@ -108,45 +106,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No estás inscrito en este curso' }, { status: 403 });
     }
 
-    // Evaluate answer - check if student's formula is equivalent to exercise formula
-    let isCorrect = false;
-    let feedback = '';
+    // Use new centralized grader
+    const { gradeSubmission } = await import('@/lib/logic/grader');
 
-    try {
-      const parser = new LogicParser();
-      const studentFormula = parser.parse(answer.trim());
-      const correctFormula = parser.parse(exercise.formula);
+    // Parse JSON content/solution if they exist (though prisma returns string for @default("{}"))
+    const exerciseAny = exercise as any;
+    const exerciseData = {
+      ...exerciseAny,
+      type: exerciseAny.type || 'EQUIVALENCE',
+      content: JSON.parse(exerciseAny.content || '{}'),
+      solution: JSON.parse(exerciseAny.solution || '{}'),
+      explanation: exerciseAny.explanation
+    };
 
-      const studentTable = generateTruthTable(studentFormula);
-      const correctTable = generateTruthTable(correctFormula);
-
-      // Compare truth tables
-      if (studentTable.variables.length === correctTable.variables.length &&
-        studentTable.variables.every(v => correctTable.variables.includes(v))) {
-        isCorrect = studentTable.rows.every((row, i) =>
-          row.result === correctTable.rows[i].result
-        );
-      }
-
-      feedback = isCorrect
-        ? '¡Correcto! Tu fórmula es lógicamente equivalente.'
-        : 'Incorrecto. Tu fórmula no produce la misma tabla de verdad.';
-    } catch {
-      feedback = 'Error al parsear la fórmula. Verifica la sintaxis.';
-    }
+    const result = gradeSubmission(exerciseData, answer);
 
     const submission = await prisma.submission.create({
       data: {
         studentId: user.id,
         exerciseId,
-        status: isCorrect ? 'CORRECT' : 'INCORRECT'
+        status: result.isCorrect ? 'CORRECT' : 'INCORRECT'
       }
     });
 
     return NextResponse.json({
       submission,
-      isCorrect,
-      feedback
+      isCorrect: result.isCorrect,
+      feedback: result.feedback,
+      explanation: result.explanation
     }, { status: 201 });
   } catch (error) {
     console.error('Error creating submission:', error);

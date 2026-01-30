@@ -41,7 +41,14 @@ model Exercise {
   id          String   @id @default(cuid())
   title       String
   description String?
-  formula     String
+  type        String   @default("EQUIVALENCE") // EQUIVALENCE, TRUTH_TABLE, VALIDITY
+  content     String   @default("{}") // JSON structure for specific type data
+  solution    String   @default("{}") // JSON structure for grading
+  explanation String?  // Personalized explanation shown after attempt
+  
+  // Legacy field
+  formula     String?
+  
   difficulty  String   // "EASY" | "MEDIUM" | "HARD"
   
   classroomId String
