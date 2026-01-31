@@ -39,7 +39,7 @@ export default function ExercisePage({
   const [loading, setLoading] = useState(true);
   const [answer, setAnswer] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ isCorrect: boolean; feedback: string } | null>(null);
+  const [result, setResult] = useState<{ isCorrect: boolean; feedback: string; explanation?: string } | null>(null);
   const [showHint, setShowHint] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -88,7 +88,7 @@ export default function ExercisePage({
 
       const data = await res.json();
       if (res.ok) {
-        setResult({ isCorrect: data.isCorrect, feedback: data.feedback });
+        setResult({ isCorrect: data.isCorrect, feedback: data.feedback, explanation: data.explanation });
       } else {
         setResult({ isCorrect: false, feedback: data.error || "Error al evaluar" });
       }
@@ -227,35 +227,43 @@ export default function ExercisePage({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              "rounded-2xl p-6 flex items-center gap-4",
+              "rounded-2xl p-6 flex flex-col gap-4",
               result.isCorrect
                 ? "bg-emerald-500/10 border border-emerald-500/30"
                 : "bg-rose-500/10 border border-rose-500/30"
             )}
           >
-            {result.isCorrect ? (
-              <CheckCircle2 className="w-10 h-10 text-emerald-400 flex-shrink-0" />
-            ) : (
-              <XCircle className="w-10 h-10 text-rose-400 flex-shrink-0" />
-            )}
-            <div>
-              <h3 className={cn(
-                "font-bold text-lg",
-                result.isCorrect ? "text-emerald-400" : "text-rose-400"
-              )}>
-                {result.isCorrect ? "¡Correcto!" : "Incorrecto"}
-              </h3>
-              <p className="text-gray-400">{result.feedback}</p>
+            <div className="flex items-start gap-4">
+              {result.isCorrect ? (
+                <CheckCircle2 className="w-10 h-10 text-emerald-400 flex-shrink-0" />
+              ) : (
+                <XCircle className="w-10 h-10 text-rose-400 flex-shrink-0" />
+              )}
+              <div className="flex-1">
+                <h3 className={cn(
+                  "font-bold text-lg mb-1",
+                  result.isCorrect ? "text-emerald-400" : "text-rose-400"
+                )}>
+                  {result.isCorrect ? "¡Correcto!" : "Incorrecto"}
+                </h3>
+                <p className="text-gray-400 mb-2">{result.feedback}</p>
+
+                {result.explanation && (
+                  <div className="mt-3 p-3 bg-white/5 rounded-lg text-sm text-gray-300 border-l-2 border-[var(--primary)]">
+                    <span className="block font-semibold text-[var(--primary)] text-xs uppercase mb-1">Nota del profesor:</span>
+                    {result.explanation}
+                  </div>
+                )}
+              </div>
+              {!result.isCorrect && (
+                <button
+                  onClick={() => { setResult(null); setAnswer(""); }}
+                  className="btn-premium text-sm bg-white/10 hover:bg-white/20 border-none"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              )}
             </div>
-            {!result.isCorrect && (
-              <button
-                onClick={() => { setResult(null); setAnswer(""); }}
-                className="ml-auto btn-premium text-sm"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Reintentar
-              </button>
-            )}
           </motion.div>
         )}
 
