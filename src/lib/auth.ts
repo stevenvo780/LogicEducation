@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
-import { compare } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -10,8 +10,49 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        code: { label: "Class Code", type: "text" },
+        name: { label: "Student Name", type: "text" }
       },
       async authorize(credentials) {
+        // Quick Join Flow (Code + Name)
+        if (credentials?.code && credentials?.name) {
+          const classroom = await prisma.classroom.findUnique({
+            where: { code: credentials.code }
+          });
+
+          if (!classroom) {
+            throw new Error("Código de clase no válido");
+          }
+
+          // Generate guest credentials
+          const uniqueId = Math.random().toString(36).substring(2, 10);
+          const timestamp = Date.now();
+          const guestEmail = `guest.${timestamp}.${uniqueId}@logiceducation.local`;
+          // Create a secure hash for the guest password
+          const guestPassword = await hash(`${uniqueId}${timestamp}`, 10);
+
+          // Create the guest user and enroll them
+          const user = await prisma.user.create({
+            data: {
+              email: guestEmail,
+              name: credentials.name,
+              password: guestPassword,
+              role: 'STUDENT',
+              classroomsEnrolled: {
+                connect: { id: classroom.id }
+              }
+            }
+          });
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          };
+        }
+
+        // Standard Login Flow (Email + Password)
         if (!credentials?.email || !credentials.password) {
           return null;
         }

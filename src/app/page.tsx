@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { GraduationCap, BookOpen, ArrowRight, BrainCircuit } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { QuickJoinForm } from "@/components/auth/QuickJoinForm";
 
 export default function Home() {
   return (
@@ -66,31 +67,43 @@ export default function Home() {
             </motion.div>
           </Link>
 
-          {/* Student Card */}
-          <Link href="/student" className="group flex-1">
+          {/* Student Card - Quick Join */}
+          <div className="flex-1">
             <motion.div
-              whileHover={{ y: -10, scale: 1.02 }}
-              className="h-full glass p-8 rounded-3xl relative overflow-hidden text-left transition-all duration-300 border border-[var(--glass-border)] hover:border-[var(--secondary)]"
+              whileHover={{ y: -5 }}
+              className="h-full glass p-8 rounded-3xl relative overflow-hidden text-left transition-all duration-300 border border-[var(--glass-border)] hover:border-cyan-500/50"
             >
-              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+              <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
                 <GraduationCap className="w-32 h-32 transform -rotate-12" />
               </div>
 
-              <div className="w-14 h-14 rounded-2xl bg-pink-500/20 flex items-center justify-center text-[var(--secondary)] mb-6 group-hover:shadow-[0_0_20px_rgba(236,72,153,0.3)] transition-shadow">
-                <GraduationCap className="w-7 h-7" />
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+                  <GraduationCap className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-white">Centro Estudiantil</h3>
+                  <p className="text-sm text-gray-400">Ingreso Rápido</p>
+                </div>
               </div>
 
-              <h3 className="text-2xl font-bold mb-2 group-hover:text-[var(--secondary)] transition-colors">Centro Estudiantil</h3>
-              <p className="text-[var(--text-muted)] mb-6">Resuelve acertijos interactivos, sigue tu progreso y domina el cálculo proposicional paso a paso.</p>
+              <p className="text-[var(--text-muted)] mb-6 text-sm">
+                Ingresa el código proporcionado por tu profesor para unirte a la clase instantáneamente.
+              </p>
 
-              <div className="flex items-center gap-2 text-sm font-bold text-[var(--secondary)]">
-                Comenzar a Aprender <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <QuickJoinForm />
+
+              <div className="mt-4 pt-4 border-t border-white/5 text-center">
+                <Link href="/login" className="text-xs text-gray-500 hover:text-cyan-400 transition-colors">
+                  ¿Ya tienes cuenta? Iniciar Sesión
+                </Link>
               </div>
             </motion.div>
-          </Link>
+          </div>
+
 
         </div>
       </div>
-    </main>
+    </main >
   );
 }
