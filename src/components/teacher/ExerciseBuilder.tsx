@@ -1,14 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   Plus,
   X,
-  ChevronDown,
-  Save,
   Eye,
-  Shuffle,
   Sparkles,
   AlertTriangle,
   Check,
@@ -18,15 +15,16 @@ import { cn } from '@/lib/utils';
 import {
   ExerciseType,
   EXERCISE_TYPES,
-  ExerciseTypeInfo,
   MultipleChoiceContent,
   FormulationContent,
   ValidationContent,
   TruthTableContent,
   SymbolArrangementContent,
+  NormalFormContent,
+  IdentifyFallacyContent,
+  ProofContent,
   generateOptionId
 } from '@/lib/exercises/exerciseTypes';
-import { SymbolPalette } from '@/components/logic/OperatorReference';
 import { TruthTable } from '@/components/logic/TruthTable';
 
 interface ExerciseBuilderProps {
@@ -356,10 +354,50 @@ const TypeSpecificEditor: React.FC<TypeSpecificEditorProps> = ({
         />
       );
 
+    case 'SYMBOL_ARRANGEMENT':
+      return (
+        <SymbolArrangementEditor
+          content={content as SymbolArrangementContent}
+          solution={solution}
+          onContentChange={onContentChange}
+          onSolutionChange={onSolutionChange}
+        />
+      );
+
+    case 'NORMAL_FORM':
+      return (
+        <NormalFormEditor
+          content={content as NormalFormContent}
+          solution={solution}
+          onContentChange={onContentChange}
+          onSolutionChange={onSolutionChange}
+        />
+      );
+
+    case 'IDENTIFY_FALLACY':
+      return (
+        <IdentifyFallacyEditor
+          content={content as IdentifyFallacyContent}
+          solution={solution}
+          onContentChange={onContentChange}
+          onSolutionChange={onSolutionChange}
+        />
+      );
+
+    case 'PROOF':
+      return (
+        <ProofEditor
+          content={content as ProofContent}
+          solution={solution}
+          onContentChange={onContentChange}
+          onSolutionChange={onSolutionChange}
+        />
+      );
+
     default:
       return (
         <div className="p-6 rounded-xl bg-white/5 text-gray-500 text-center">
-          Editor para {type} en desarrollo...
+          Tipo de ejercicio no soportado.
         </div>
       );
   }
@@ -901,6 +939,585 @@ const TruthTableEditor: React.FC<{
           </p>
         </div>
       )}
+    </div>
+  );
+};
+
+// ============================================================================
+// SYMBOL ARRANGEMENT EDITOR
+// ============================================================================
+
+const SymbolArrangementEditor: React.FC<{
+  content: SymbolArrangementContent;
+  solution: unknown;
+  onContentChange: (content: unknown) => void;
+  onSolutionChange: (solution: unknown) => void;
+}> = ({ content, onContentChange, onSolutionChange }) => {
+  const [instruction, setInstruction] = useState(content?.instruction || '');
+  const [targetDescription, setTargetDescription] = useState(content?.targetDescription || '');
+  const [symbols, setSymbols] = useState<Array<{ id: string; symbol: string; count: number }>>(
+    content?.availableSymbols || [
+      { id: '1', symbol: 'P', count: 1 },
+      { id: '2', symbol: 'Q', count: 1 },
+      { id: '3', symbol: '→', count: 1 }
+    ]
+  );
+  const [correctFormulas, setCorrectFormulas] = useState<string[]>(
+    (onSolutionChange as unknown as { correctFormulas?: string[] })?.correctFormulas || ['']
+  );
+
+  React.useEffect(() => {
+    onContentChange({
+      instruction,
+      availableSymbols: symbols,
+      targetDescription
+    });
+    onSolutionChange({
+      correctFormulas: correctFormulas.filter(f => f.trim())
+    });
+  }, [instruction, symbols, targetDescription, correctFormulas, onContentChange, onSolutionChange]);
+
+  const addSymbol = () => {
+    setSymbols([...symbols, { id: generateOptionId(), symbol: '', count: 1 }]);
+  };
+
+  const removeSymbol = (id: string) => {
+    if (symbols.length <= 1) return;
+    setSymbols(symbols.filter(s => s.id !== id));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Instrucción
+        </label>
+        <textarea
+          value={instruction}
+          onChange={(e) => setInstruction(e.target.value)}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none focus:border-cyan-500 transition-all resize-none h-20"
+          placeholder="Arrastra los símbolos para formar la fórmula correcta..."
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Descripción del Objetivo
+        </label>
+        <input
+          type="text"
+          value={targetDescription}
+          onChange={(e) => setTargetDescription(e.target.value)}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none focus:border-cyan-500 transition-all"
+          placeholder="Forma el condicional 'Si P entonces Q'"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Símbolos Disponibles
+        </label>
+        <div className="space-y-2">
+          {symbols.map((sym, i) => (
+            <div key={sym.id} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={sym.symbol}
+                onChange={(e) => {
+                  const newSymbols = [...symbols];
+                  newSymbols[i] = { ...sym, symbol: e.target.value };
+                  setSymbols(newSymbols);
+                }}
+                className="w-20 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-center"
+                placeholder="∧"
+              />
+              <span className="text-gray-500">×</span>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                value={sym.count}
+                onChange={(e) => {
+                  const newSymbols = [...symbols];
+                  newSymbols[i] = { ...sym, count: parseInt(e.target.value) || 1 };
+                  setSymbols(newSymbols);
+                }}
+                className="w-16 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-center"
+              />
+              {symbols.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeSymbol(sym.id)}
+                  className="text-gray-600 hover:text-rose-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addSymbol}
+            className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+          >
+            <Plus className="w-4 h-4" />
+            Agregar símbolo
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Fórmulas Correctas (una por línea)
+        </label>
+        <textarea
+          value={correctFormulas.join('\n')}
+          onChange={(e) => setCorrectFormulas(e.target.value.split('\n'))}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-gray-600 outline-none focus:border-cyan-500 transition-all resize-none h-24"
+          placeholder="P → Q"
+        />
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// NORMAL FORM EDITOR
+// ============================================================================
+
+const NormalFormEditor: React.FC<{
+  content: NormalFormContent;
+  solution: unknown;
+  onContentChange: (content: unknown) => void;
+  onSolutionChange: (solution: unknown) => void;
+}> = ({ content, onContentChange, onSolutionChange }) => {
+  const [formula, setFormula] = useState(content?.formula || '');
+  const [targetForm, setTargetForm] = useState<'CNF' | 'DNF' | 'NNF'>(content?.targetForm || 'CNF');
+  const [correctFormulas, setCorrectFormulas] = useState<string[]>(['']);
+
+  React.useEffect(() => {
+    onContentChange({
+      formula,
+      targetForm
+    });
+    onSolutionChange({
+      correctFormulas: correctFormulas.filter(f => f.trim())
+    });
+  }, [formula, targetForm, correctFormulas, onContentChange, onSolutionChange]);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Fórmula Original
+        </label>
+        <div className="flex gap-2 mb-2">
+          {['¬', '∧', '∨', '→', '↔', '(', ')'].map(sym => (
+            <button
+              key={sym}
+              type="button"
+              onClick={() => setFormula(prev => prev + sym)}
+              className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-lg font-mono"
+            >
+              {sym}
+            </button>
+          ))}
+        </div>
+        <input
+          type="text"
+          value={formula}
+          onChange={(e) => setFormula(e.target.value)}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-gray-600 outline-none focus:border-cyan-500 transition-all"
+          placeholder="P → (Q ∨ R)"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Forma Normal Objetivo
+        </label>
+        <div className="flex gap-2">
+          {[
+            { value: 'CNF', label: 'CNF (Conjuntiva)', desc: '(A ∨ B) ∧ (C ∨ D)' },
+            { value: 'DNF', label: 'DNF (Disyuntiva)', desc: '(A ∧ B) ∨ (C ∧ D)' },
+            { value: 'NNF', label: 'NNF (Negación)', desc: 'Negaciones solo en átomos' }
+          ].map(form => (
+            <button
+              key={form.value}
+              type="button"
+              onClick={() => setTargetForm(form.value as 'CNF' | 'DNF' | 'NNF')}
+              className={cn(
+                "flex-1 p-3 rounded-xl border text-left transition-all",
+                targetForm === form.value
+                  ? "border-cyan-500 bg-cyan-500/10"
+                  : "border-white/10 hover:border-white/30"
+              )}
+            >
+              <div className="font-medium text-sm">{form.label}</div>
+              <div className="text-xs text-gray-500 mt-1 font-mono">{form.desc}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Respuestas Correctas (una por línea)
+        </label>
+        <textarea
+          value={correctFormulas.join('\n')}
+          onChange={(e) => setCorrectFormulas(e.target.value.split('\n'))}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-gray-600 outline-none focus:border-cyan-500 transition-all resize-none h-24"
+          placeholder="(¬P ∨ Q) ∧ (¬P ∨ R)"
+        />
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// IDENTIFY FALLACY EDITOR
+// ============================================================================
+
+const COMMON_FALLACIES = [
+  { id: 'ad_hominem', name: 'Ad Hominem', description: 'Atacar a la persona en lugar del argumento' },
+  { id: 'strawman', name: 'Hombre de Paja', description: 'Distorsionar el argumento del oponente' },
+  { id: 'false_dichotomy', name: 'Falsa Dicotomía', description: 'Presentar solo dos opciones cuando hay más' },
+  { id: 'slippery_slope', name: 'Pendiente Resbaladiza', description: 'Afirmar sin evidencia que una acción llevará a consecuencias extremas' },
+  { id: 'circular_reasoning', name: 'Razonamiento Circular', description: 'Usar la conclusión como premisa' },
+  { id: 'appeal_to_authority', name: 'Argumento de Autoridad', description: 'Apelar a una autoridad no relevante' },
+  { id: 'appeal_to_emotion', name: 'Apelación a la Emoción', description: 'Usar emociones en lugar de razones' },
+  { id: 'hasty_generalization', name: 'Generalización Apresurada', description: 'Sacar conclusiones de pocos casos' },
+  { id: 'red_herring', name: 'Pista Falsa', description: 'Introducir un tema irrelevante' },
+  { id: 'tu_quoque', name: 'Tu Quoque', description: 'Responder a una crítica con otra crítica' },
+  { id: 'affirming_consequent', name: 'Afirmación del Consecuente', description: 'Si P→Q y Q, concluir P' },
+  { id: 'denying_antecedent', name: 'Negación del Antecedente', description: 'Si P→Q y ¬P, concluir ¬Q' }
+];
+
+const IdentifyFallacyEditor: React.FC<{
+  content: IdentifyFallacyContent;
+  solution: unknown;
+  onContentChange: (content: unknown) => void;
+  onSolutionChange: (solution: unknown) => void;
+}> = ({ content, onContentChange, onSolutionChange }) => {
+  const [argument, setArgument] = useState(content?.argument || '');
+  const [options, setOptions] = useState<Array<{ id: string; name: string; description: string }>>(
+    content?.options || COMMON_FALLACIES.slice(0, 4)
+  );
+  const [correctId, setCorrectId] = useState<string>(
+    (onSolutionChange as unknown as { correctFallacyId?: string })?.correctFallacyId || ''
+  );
+  const [explanation, setExplanation] = useState('');
+
+  React.useEffect(() => {
+    onContentChange({
+      argument,
+      options
+    });
+    onSolutionChange({
+      correctFallacyId: correctId,
+      explanation
+    });
+  }, [argument, options, correctId, explanation, onContentChange, onSolutionChange]);
+
+  const addFallacyOption = (fallacy: typeof COMMON_FALLACIES[0]) => {
+    if (options.find(o => o.id === fallacy.id)) return;
+    setOptions([...options, fallacy]);
+  };
+
+  const removeOption = (id: string) => {
+    if (options.length <= 2) return;
+    setOptions(options.filter(o => o.id !== id));
+    if (correctId === id) setCorrectId('');
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Argumento con Falacia
+        </label>
+        <textarea
+          value={argument}
+          onChange={(e) => setArgument(e.target.value)}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none focus:border-cyan-500 transition-all resize-none h-24"
+          placeholder="Juan dice que debemos cuidar el medio ambiente, pero él conduce un auto que contamina mucho, así que su argumento no vale..."
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Opciones de Falacia (marca la correcta)
+        </label>
+        <div className="space-y-2 mb-3">
+          {options.map((option) => (
+            <div key={option.id} className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setCorrectId(option.id)}
+                className={cn(
+                  "w-8 h-8 rounded-lg border-2 flex items-center justify-center transition-all shrink-0",
+                  correctId === option.id
+                    ? "border-emerald-500 bg-emerald-500/20"
+                    : "border-white/20 hover:border-white/40"
+                )}
+              >
+                {correctId === option.id && <Check className="w-4 h-4 text-emerald-400" />}
+              </button>
+              <div className="flex-1 p-3 rounded-lg bg-white/5 border border-white/10">
+                <div className="font-medium text-sm">{option.name}</div>
+                <div className="text-xs text-gray-500">{option.description}</div>
+              </div>
+              {options.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => removeOption(option.id)}
+                  className="text-gray-600 hover:text-rose-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <span className="text-xs text-gray-500 w-full">Agregar falacia:</span>
+          {COMMON_FALLACIES.filter(f => !options.find(o => o.id === f.id)).slice(0, 6).map(fallacy => (
+            <button
+              key={fallacy.id}
+              type="button"
+              onClick={() => addFallacyOption(fallacy)}
+              className="text-xs px-2 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-gray-400"
+            >
+              + {fallacy.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Explicación
+        </label>
+        <textarea
+          value={explanation}
+          onChange={(e) => setExplanation(e.target.value)}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none focus:border-cyan-500 transition-all resize-none h-20"
+          placeholder="Se comete la falacia Tu Quoque porque..."
+        />
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// PROOF EDITOR
+// ============================================================================
+
+const INFERENCE_RULES = [
+  { id: 'mp', name: 'Modus Ponens', formula: 'P, P→Q ⊢ Q' },
+  { id: 'mt', name: 'Modus Tollens', formula: 'P→Q, ¬Q ⊢ ¬P' },
+  { id: 'hs', name: 'Silogismo Hipotético', formula: 'P→Q, Q→R ⊢ P→R' },
+  { id: 'ds', name: 'Silogismo Disyuntivo', formula: 'P∨Q, ¬P ⊢ Q' },
+  { id: 'add', name: 'Adición', formula: 'P ⊢ P∨Q' },
+  { id: 'simp', name: 'Simplificación', formula: 'P∧Q ⊢ P' },
+  { id: 'conj', name: 'Conjunción', formula: 'P, Q ⊢ P∧Q' },
+  { id: 'abs', name: 'Absorción', formula: 'P→Q ⊢ P→(P∧Q)' },
+  { id: 'dn', name: 'Doble Negación', formula: 'P ⊣⊢ ¬¬P' },
+  { id: 'dem', name: 'De Morgan', formula: '¬(P∧Q) ⊣⊢ ¬P∨¬Q' },
+  { id: 'com', name: 'Conmutación', formula: 'P∧Q ⊣⊢ Q∧P' },
+  { id: 'assoc', name: 'Asociación', formula: '(P∧Q)∧R ⊣⊢ P∧(Q∧R)' },
+  { id: 'dist', name: 'Distribución', formula: 'P∧(Q∨R) ⊣⊢ (P∧Q)∨(P∧R)' },
+  { id: 'impl', name: 'Implicación Material', formula: 'P→Q ⊣⊢ ¬P∨Q' },
+  { id: 'exp', name: 'Exportación', formula: '(P∧Q)→R ⊣⊢ P→(Q→R)' },
+  { id: 'taut', name: 'Tautología', formula: 'P ⊣⊢ P∨P' }
+];
+
+const ProofEditor: React.FC<{
+  content: ProofContent;
+  solution: unknown;
+  onContentChange: (content: unknown) => void;
+  onSolutionChange: (solution: unknown) => void;
+}> = ({ content, onContentChange, onSolutionChange }) => {
+  const [premises, setPremises] = useState<string[]>(content?.premises || ['', '']);
+  const [conclusion, setConclusion] = useState(content?.conclusion || '');
+  const [allowedRules, setAllowedRules] = useState<string[]>(
+    content?.allowedRules || INFERENCE_RULES.slice(0, 6).map(r => r.id)
+  );
+  const [maxSteps, setMaxSteps] = useState(content?.maxSteps || 10);
+  const [proofSteps, setProofSteps] = useState<Array<{ formula: string; justification: string }>>([
+    { formula: '', justification: '' }
+  ]);
+
+  React.useEffect(() => {
+    onContentChange({
+      premises: premises.filter(p => p.trim()),
+      conclusion,
+      allowedRules,
+      maxSteps
+    });
+    onSolutionChange({
+      proofSteps: proofSteps.filter(s => s.formula.trim())
+    });
+  }, [premises, conclusion, allowedRules, maxSteps, proofSteps, onContentChange, onSolutionChange]);
+
+  const toggleRule = (ruleId: string) => {
+    setAllowedRules(prev =>
+      prev.includes(ruleId)
+        ? prev.filter(r => r !== ruleId)
+        : [...prev, ruleId]
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Premisas
+        </label>
+        <div className="space-y-2">
+          {premises.map((p, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-gray-600 font-mono w-6">{i + 1}.</span>
+              <input
+                type="text"
+                value={p}
+                onChange={(e) => {
+                  const newP = [...premises];
+                  newP[i] = e.target.value;
+                  setPremises(newP);
+                }}
+                className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white font-mono"
+                placeholder="P → Q"
+              />
+              {premises.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setPremises(premises.filter((_, j) => j !== i))}
+                  className="text-gray-600 hover:text-rose-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setPremises([...premises, ''])}
+            className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+          >
+            <Plus className="w-4 h-4" />
+            Agregar premisa
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Conclusión a Demostrar
+        </label>
+        <input
+          type="text"
+          value={conclusion}
+          onChange={(e) => setConclusion(e.target.value)}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder-gray-600 outline-none focus:border-cyan-500 transition-all"
+          placeholder="Q"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Reglas de Inferencia Permitidas
+        </label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-2 rounded-xl bg-black/20">
+          {INFERENCE_RULES.map(rule => (
+            <button
+              key={rule.id}
+              type="button"
+              onClick={() => toggleRule(rule.id)}
+              className={cn(
+                "p-2 rounded-lg border text-left text-xs transition-all",
+                allowedRules.includes(rule.id)
+                  ? "border-cyan-500 bg-cyan-500/10"
+                  : "border-white/10 hover:border-white/30 opacity-50"
+              )}
+            >
+              <div className="font-medium">{rule.name}</div>
+              <div className="text-gray-500 font-mono text-[10px]">{rule.formula}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Máximo de Pasos: {maxSteps}
+        </label>
+        <input
+          type="range"
+          min="3"
+          max="20"
+          value={maxSteps}
+          onChange={(e) => setMaxSteps(parseInt(e.target.value))}
+          className="w-full"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Prueba de Ejemplo (Opcional)
+        </label>
+        <p className="text-xs text-gray-500 mb-2">
+          Proporciona una prueba de ejemplo para guiar la calificación.
+        </p>
+        <div className="space-y-2">
+          {proofSteps.map((step, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-gray-600 font-mono w-6">{premises.length + i + 1}.</span>
+              <input
+                type="text"
+                value={step.formula}
+                onChange={(e) => {
+                  const newSteps = [...proofSteps];
+                  newSteps[i] = { ...step, formula: e.target.value };
+                  setProofSteps(newSteps);
+                }}
+                className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white font-mono"
+                placeholder="Q"
+              />
+              <input
+                type="text"
+                value={step.justification}
+                onChange={(e) => {
+                  const newSteps = [...proofSteps];
+                  newSteps[i] = { ...step, justification: e.target.value };
+                  setProofSteps(newSteps);
+                }}
+                className="w-32 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm"
+                placeholder="MP 1,2"
+              />
+              {proofSteps.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setProofSteps(proofSteps.filter((_, j) => j !== i))}
+                  className="text-gray-600 hover:text-rose-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setProofSteps([...proofSteps, { formula: '', justification: '' }])}
+            className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+          >
+            <Plus className="w-4 h-4" />
+            Agregar paso
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
