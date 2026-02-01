@@ -82,10 +82,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Solo profesores pueden crear ejercicios' }, { status: 403 });
     }
 
-    const { title, description, explanation, formula, difficulty, classroomId } = await request.json();
+    const body = await request.json();
+    const {
+      title,
+      description,
+      explanation,
+      formula, // Legacy field
+      difficulty,
+      classroomId,
+      type,     // New field: exercise type
+      content,  // New field: JSON content
+      solution  // New field: JSON solution
+    } = body;
 
-    if (!title || !formula || !classroomId) {
-      return NextResponse.json({ error: 'Título, fórmula y classroomId son requeridos' }, { status: 400 });
+    // Validate required fields
+    if (!title || !classroomId) {
+      return NextResponse.json({ error: 'Título y classroomId son requeridos' }, { status: 400 });
+    }
+
+    // For legacy format, require formula
+    // For new format, require type and content
+    const isNewFormat = type && content;
+    const isLegacyFormat = formula && !type;
+
+    if (!isNewFormat && !isLegacyFormat) {
+      return NextResponse.json({
+        error: 'Debe proporcionar: (formula) para formato legacy, o (type + content) para nuevo formato'
+      }, { status: 400 });
     }
 
     // Verify teacher owns the classroom
@@ -97,16 +120,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No tienes permiso para agregar ejercicios a este curso' }, { status: 403 });
     }
 
+    // Build the exercise data
+    const exerciseData: {
+      title: string;
+      description: string | null;
+      explanation: string | null;
+      type: string;
+      content: string;
+      solution: string;
+      formula: string | null;
+      difficulty: string;
+      classroomId: string;
+    } = {
+      title: title.trim(),
+      description: description?.trim() || null,
+      explanation: explanation?.trim() || null,
+      type: type || 'EQUIVALENCE',
+      content: typeof content === 'string' ? content : JSON.stringify(content || {}),
+      solution: typeof solution === 'string' ? solution : JSON.stringify(solution || {}),
+      formula: formula?.trim() || null,
+      difficulty: difficulty || 'MEDIUM',
+      classroomId
+    };
+
+    // For legacy format, extract formula into content if needed
+    if (isLegacyFormat && !content) {
+      exerciseData.content = JSON.stringify({ formula: formula.trim() });
+    }
+
     const exercise = await prisma.exercise.create({
-      data: {
-        title: title.trim(),
-        description: description?.trim() || null,
-        explanation: explanation?.trim() || null,
-        formula: formula.trim(),
-        difficulty: difficulty || 'MEDIUM',
-        type: 'EQUIVALENCE', // Default for now, can be expanded later
-        classroomId
-      }
+      data: exerciseData
     });
 
     return NextResponse.json({ exercise }, { status: 201 });
